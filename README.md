@@ -26,6 +26,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script
 - Checks that Windows is running.
 - Installs GitHub CLI and Git through `winget` when they are missing.
 - Starts official GitHub CLI web login when private-repo access is not already available.
+- Verifies that the signed-in GitHub account can access the private baseline repo before cloning.
 - Clones or updates the private `junyoung8753/codex-portable-baseline` repo.
 - Copies the portable `.codex` baseline into `%USERPROFILE%\.codex`.
 - Runs the private baseline's new-PC bootstrap script when available.

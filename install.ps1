@@ -45,6 +45,27 @@ function Install-WingetPackage {
     winget install --id $Id --exact --source winget --accept-source-agreements --accept-package-agreements
 }
 
+function Ensure-GitHubRepoAccess {
+    param([string]$Repo)
+
+    Write-Step "Checking private baseline access"
+    gh repo view $Repo --json name *> $null
+    if ($LASTEXITCODE -eq 0) {
+        return
+    }
+
+    if ($SkipGitHubLogin) {
+        throw "GitHub CLI cannot access $Repo. Rerun without -SkipGitHubLogin and complete GitHub OAuth."
+    }
+
+    Write-Step "Refreshing GitHub OAuth scopes for private repo access"
+    gh auth refresh -h github.com -s repo
+    gh repo view $Repo --json name *> $null
+    if ($LASTEXITCODE -ne 0) {
+        throw "GitHub CLI still cannot access $Repo. Confirm the GitHub account has access to the private baseline repo, then rerun this script."
+    }
+}
+
 if (-not $IsWindows -and $env:OS -ne "Windows_NT") {
     throw "This bootstrap currently supports Windows only."
 }
@@ -77,6 +98,8 @@ if (-not $SkipGitHubLogin) {
         gh auth login -h github.com -s repo --web
     }
 }
+
+Ensure-GitHubRepoAccess -Repo $BaselineRepo
 
 $target = Join-Path $InstallRoot "codex-portable-baseline"
 if (Test-Path -LiteralPath (Join-Path $target ".git")) {
